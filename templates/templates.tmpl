@@ -1,0 +1,71 @@
+{{define "head" -}}
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    </head>
+
+    <body>
+        {{template "menu"}}
+{{end}}
+
+{{define "foot"}}
+    </body>
+</html>
+{{end}}
+
+{{define "menu"}}
+    <ul>
+        <li><a href="/dog/all">all</a></li>
+    </ul>
+{{end}}
+
+{{block "all" .}}
+    {{template "head"}}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name (<a href="/dog/all?order=name&direction=asc">asc</a> | <a href="/dog/all?order=name&direction=desc">desc</a>)</th>
+                <th>Breed (<a href="/dog/all?order=breed&direction=asc">asc</a> | <a href="/dog/all?order=breed&direction=desc">desc</a>)</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {{range .Dogs}}
+                <tr>
+                    <td><a href="/dog?name={{.Name}}">{{.Name}}</td>
+                    <td>{{.Breed}}</td>
+                </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    {{template "foot"}}
+{{end}}
+
+{{block "single" .}}
+    {{template "head"}}
+
+    <table>
+        <tbody>
+            <tr>
+                <th>Name</th><td>{{.Name}}</td>
+            </tr>
+            <tr>
+                <th>Breed</th><td>{{.Breed}}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{template "foot"}}
+{{end}}
+
+{{define "no-such-dog"}}
+    {{template "head"}}
+
+    <p>Couldn't find that dog!</p>
+
+    {{template "foot"}}
+{{end}}

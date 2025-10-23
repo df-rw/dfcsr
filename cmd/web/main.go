@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"dfcsr/internal/dog"
@@ -11,8 +12,11 @@ import (
 
 func main() {
 	mux := chi.NewRouter()
+	tpl := template.Must(template.ParseGlob("templates/*"))
 
-	dogController := dog.NewController(dog.NewService(dog.NewMemoryRepository()))
+	dogRepo := dog.NewMemoryRepository()
+	dogService := dog.NewService(dogRepo)
+	dogController := dog.NewController(dogService, tpl)
 
 	mux.Get("/dog", dogController.ByName)
 	mux.Get("/dog/all", dogController.All)

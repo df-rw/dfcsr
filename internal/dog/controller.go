@@ -1,6 +1,9 @@
 package dog
 
 import (
+	"errors"
+	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 )
@@ -12,15 +15,17 @@ type Controller interface {
 }
 
 // External factory.
-func NewController(s Service) Controller {
+func NewController(s Service, tpl *template.Template) Controller {
 	return &controller{
 		service: s,
+		tpl:     tpl,
 	}
 }
 
 // Internal representation.
 type controller struct {
 	service Service
+	tpl     *template.Template
 }
 
 // Request structures.
@@ -41,14 +46,26 @@ type DogResponse struct {
 }
 
 type AllResponse struct {
-	dogs []*DogResponse
+	Dogs []*DogResponse
+}
+
+func blargh(w http.ResponseWriter, statusCode int, err error) {
+	w.WriteHeader(statusCode)
+	log.Println(err)
+}
+
+func (c *controller) render(w http.ResponseWriter, blockName string, blockData any) {
+	w.WriteHeader(http.StatusOK)
+	if err := c.tpl.ExecuteTemplate(w, blockName, blockData); err != nil {
+		log.Printf("c.tpl.ExecuteTemplate(): %v\n", err)
+	}
 }
 
 // GET /dog/all?order=<name|breed>&direction=<asc|desc>
 func (c *controller) All(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		log.Println("r.ParseForm()", err)
+		blargh(w, http.StatusInternalServerError, fmt.Errorf("r.ParseForm(): %w", err))
 
 		return
 	}
@@ -61,24 +78,20 @@ func (c *controller) All(w http.ResponseWriter, r *http.Request) {
 
 	response, err := c.service.All(dr)
 	if err != nil {
-		log.Printf("c.service.All(): %v", err)
+		blargh(w, http.StatusInternalServerError, fmt.Errorf("c.service.All(): %w", err))
 
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	c.render(w, "all", response)
 
-	for _, d := range response.dogs {
-		log.Printf("%s: %s: %s\n", d.Name, d.Breed, d.NameBreed)
-	}
-	log.Println()
 }
 
 // Get /dog?name=<name>
 func (c *controller) ByName(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		log.Println("r.ParseForm()", err)
+		blargh(w, http.StatusInternalServerError, fmt.Errorf("r.ParseForm(): %w", err))
 
 		return
 	}
@@ -89,11 +102,14 @@ func (c *controller) ByName(w http.ResponseWriter, r *http.Request) {
 
 	response, err := c.service.GetByName(dr)
 	if err != nil {
-		log.Printf("c.Service.GetByName(%s): %v", dr.Name, err)
+		if errors.Is(err, ErrNoSuchDog) {
+			c.render(w, "no-such-dog", nil)
+		} else {
+			blargh(w, http.StatusInternalServerError, fmt.Errorf("c.Service.GetByName(%s): %v", dr.Name, err))
+		}
 
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	log.Println(response)
+	c.render(w, "single", response)
 }

@@ -2,7 +2,6 @@ package dog
 
 import (
 	"errors"
-	"log"
 	"slices"
 	"sort"
 	"strings"
@@ -79,18 +78,15 @@ func sortEntities(dogs []entity, filters *Filters) []entity {
 	case "name":
 		switch filters.Direction {
 		case "desc":
-			log.Println("name desc")
 			sortFn = sortByNameDesc
 		}
 
 	case "breed":
 		switch filters.Direction {
 		case "asc":
-			log.Println("breed asc")
 			sortFn = sortByBreedAsc
 
 		case "desc":
-			log.Println("breed desc")
 			sortFn = sortByBreedDesc
 		}
 	}

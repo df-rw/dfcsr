@@ -89,7 +89,7 @@ func toAllResponse(m []*Model) *AllResponse {
 	}
 
 	return &AllResponse{
-		dogs: dogs,
+		Dogs: dogs,
 	}
 }
 
