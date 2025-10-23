@@ -1,9 +1,11 @@
 package dog
 
 import (
+	"errors"
 	"log"
 	"slices"
 	"sort"
+	"strings"
 )
 
 type entity struct {
@@ -13,11 +15,16 @@ type entity struct {
 
 type Repository interface {
 	All(*Filters) ([]*Model, error)
+	GetByName(string) (*Model, error)
 }
 
 type dogRepository struct {
 	dogs []entity
 }
+
+var (
+	ErrNoSuchDog = errors.New("no such dog")
+)
 
 func NewMemoryRepository() Repository {
 	return &dogRepository{
@@ -29,13 +36,17 @@ func NewMemoryRepository() Repository {
 	}
 }
 
-func toModel(entities []entity) []*Model {
+func toModel(e entity) *Model {
+	return &Model{
+		Name:  e.name,
+		Breed: e.breed,
+	}
+}
+
+func toModels(entities []entity) []*Model {
 	dogs := make([]*Model, len(entities))
 	for i, e := range entities {
-		dogs[i] = &Model{
-			Name:  e.name,
-			Breed: e.breed,
-		}
+		dogs[i] = toModel(e)
 	}
 
 	return dogs
@@ -86,5 +97,15 @@ func (d *dogRepository) sortEntities(filters *Filters) []entity {
 func (d *dogRepository) All(filters *Filters) ([]*Model, error) {
 	dogs := d.sortEntities(filters)
 
-	return toModel(dogs), nil
+	return toModels(dogs), nil
+}
+
+func (d *dogRepository) GetByName(name string) (*Model, error) {
+	for _, dog := range d.dogs {
+		if strings.EqualFold(dog.name, name) {
+			return toModel(dog), nil
+		}
+	}
+
+	return nil, ErrNoSuchDog
 }

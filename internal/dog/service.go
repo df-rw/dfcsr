@@ -17,6 +17,7 @@ func (m *Model) NameBreed() string {
 
 type Service interface {
 	All(*AllRequest) (*AllResponse, error)
+	GetByName(*NameRequest) (*DogResponse, error)
 }
 
 type dogService struct {
@@ -56,7 +57,7 @@ func toFilters(dr *AllRequest) (*Filters, error) {
 	}, nil
 }
 
-func toResponse(m []*Model) *AllResponse {
+func toAllResponse(m []*Model) *AllResponse {
 	dogs := make([]*DogResponse, len(m))
 
 	for i, d := range m {
@@ -72,16 +73,37 @@ func toResponse(m []*Model) *AllResponse {
 	}
 }
 
+func toDogResponse(m *Model) *DogResponse {
+	if m != nil {
+		return &DogResponse{
+			Name:      m.Name,
+			Breed:     m.Breed,
+			NameBreed: m.NameBreed(),
+		}
+	}
+
+	return nil
+}
+
 func (s *dogService) All(dr *AllRequest) (*AllResponse, error) {
 	filters, err := toFilters(dr)
 	if err != nil {
-		return &AllResponse{}, fmt.Errorf("toFilters(): %w", err)
+		return nil, fmt.Errorf("toFilters(): %w", err)
 	}
 
 	models, err := s.repo.All(filters)
 	if err != nil {
-		return &AllResponse{}, fmt.Errorf("s.repo.All(): %w", err)
+		return nil, fmt.Errorf("s.repo.All(): %w", err)
 	}
 
-	return toResponse(models), nil
+	return toAllResponse(models), nil
+}
+
+func (s *dogService) GetByName(dr *NameRequest) (*DogResponse, error) {
+	model, err := s.repo.GetByName(dr.Name)
+	if err != nil {
+		return nil, fmt.Errorf("s.repo.GetByName(%s): %w", dr.Name, err)
+	}
+
+	return toDogResponse(model), nil
 }

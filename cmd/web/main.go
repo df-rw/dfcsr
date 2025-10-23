@@ -16,6 +16,7 @@ func main() {
 	dogService := dog.NewService(dogRepo)
 	dogController := dog.NewController(dogService)
 
+	mux.Get("/dog", dogController.ByName)
 	mux.Get("/dog/all", dogController.All)
 
 	fmt.Println("listening on port 8080")

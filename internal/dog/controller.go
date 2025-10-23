@@ -7,6 +7,7 @@ import (
 
 type Controller interface {
 	All(http.ResponseWriter, *http.Request)
+	ByName(http.ResponseWriter, *http.Request)
 }
 
 type controller struct {
@@ -24,6 +25,10 @@ type AllRequest struct {
 	Direction string
 }
 
+type NameRequest struct {
+	Name string
+}
+
 type DogResponse struct {
 	Name      string
 	Breed     string
@@ -34,7 +39,7 @@ type AllResponse struct {
 	dogs []*DogResponse
 }
 
-// GET /dog/all?order=name&direction=asc
+// GET /dog/all?order=<name|breed>&direction=<asc|desc>
 func (c *controller) All(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -43,7 +48,7 @@ func (c *controller) All(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// construct DTO
+	// construct request
 	dr := &AllRequest{
 		Order:     r.FormValue("order"),
 		Direction: r.FormValue("direction"),
@@ -62,4 +67,28 @@ func (c *controller) All(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s: %s: %s\n", d.Name, d.Breed, d.NameBreed)
 	}
 	log.Println()
+}
+
+// Get /dog?name=<name>
+func (c *controller) ByName(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		log.Println("r.ParseForm()", err)
+
+		return
+	}
+
+	dr := &NameRequest{
+		Name: r.FormValue("name"),
+	}
+
+	response, err := c.service.GetByName(dr)
+	if err != nil {
+		log.Println("c.Service.GetByName(%s): %w", dr.Name, err)
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	log.Println(response)
 }
