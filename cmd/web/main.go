@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 
 	"dfcsr/internal/dog"
@@ -21,6 +21,6 @@ func main() {
 	mux.Get("/dog", dogController.ByName)
 	mux.Get("/dog/all", dogController.All)
 
-	fmt.Println("listening on port 8080")
-	http.ListenAndServe(":8080", mux)
+	log.Println("listening on port 8080")
+	_ = http.ListenAndServe(":8080", mux)
 }

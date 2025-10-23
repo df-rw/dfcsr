@@ -106,7 +106,7 @@ func toDogResponse(m *Model) *DogResponse {
 	return nil
 }
 
-// Request for all dogs.
+// All dogs.
 func (s *dogService) All(dr *AllRequest) (*AllResponse, error) {
 	filters, err := toFilters(dr)
 	if err != nil {
@@ -121,7 +121,7 @@ func (s *dogService) All(dr *AllRequest) (*AllResponse, error) {
 	return toAllResponse(models), nil
 }
 
-// Request for a single dog by name.
+// Dog by name.
 func (s *dogService) GetByName(dr *NameRequest) (*DogResponse, error) {
 	model, err := s.repo.GetByName(dr.Name)
 	if err != nil {
