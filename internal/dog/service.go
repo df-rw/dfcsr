@@ -6,57 +6,77 @@ import (
 	"slices"
 )
 
-type Model struct {
-	Name  string
-	Breed string
-}
-
-func (m *Model) NameBreed() string {
-	return m.Name + m.Breed
-}
-
+// External interface.
 type Service interface {
 	All(*AllRequest) (*AllResponse, error)
 	GetByName(*NameRequest) (*DogResponse, error)
 }
 
-type dogService struct {
-	repo Repository
-}
-
+// External factory.
 func NewService(r Repository) Service {
 	return &dogService{
 		repo: r,
 	}
 }
 
+// Internal representation.
+type dogService struct {
+	repo Repository
+}
+
+// Support structures.
 type Filters struct {
 	Order     string
 	Direction string
 }
 
+// Domain model.
+type Model struct {
+	Name  string
+	Breed string
+}
+
+// Domain model methods.
+func (m *Model) NameBreed() string {
+	return m.Name + m.Breed
+}
+
+// Errors.
 var (
-	validOrders         = []string{"name", "breed"}
-	validDirections     = []string{"asc", "desc"}
 	ErrInvalidOrder     = errors.New("invalid order")
 	ErrInvalidDirection = errors.New("invalid direction")
 )
 
+// Create a filters request.
 func toFilters(dr *AllRequest) (*Filters, error) {
-	if !slices.Contains(validOrders, dr.Order) {
-		return nil, fmt.Errorf("%s: %w", dr.Order, ErrInvalidOrder)
+	validOrders := []string{"name", "breed"}
+	validDirections := []string{"asc", "desc"}
+
+	filters := &Filters{
+		Order:     validOrders[0],
+		Direction: validDirections[1],
 	}
 
-	if !slices.Contains(validDirections, dr.Direction) {
-		return nil, fmt.Errorf("%s: %w", dr.Direction, ErrInvalidDirection)
+	if dr.Order != "" {
+		if !slices.Contains(validOrders, dr.Order) {
+			return nil, fmt.Errorf("%s: %w", dr.Order, ErrInvalidOrder)
+		}
+
+		filters.Order = dr.Order
 	}
 
-	return &Filters{
-		Order:     dr.Order,
-		Direction: dr.Direction,
-	}, nil
+	if dr.Direction != "" {
+		if !slices.Contains(validDirections, dr.Direction) {
+			return nil, fmt.Errorf("%s: %w", dr.Direction, ErrInvalidDirection)
+		}
+
+		filters.Direction = dr.Direction
+	}
+
+	return filters, nil
 }
 
+// Convert a slice of domain models to a response.
 func toAllResponse(m []*Model) *AllResponse {
 	dogs := make([]*DogResponse, len(m))
 
@@ -73,6 +93,7 @@ func toAllResponse(m []*Model) *AllResponse {
 	}
 }
 
+// Convert a single domain model to a response.
 func toDogResponse(m *Model) *DogResponse {
 	if m != nil {
 		return &DogResponse{
@@ -85,6 +106,7 @@ func toDogResponse(m *Model) *DogResponse {
 	return nil
 }
 
+// Request for all dogs.
 func (s *dogService) All(dr *AllRequest) (*AllResponse, error) {
 	filters, err := toFilters(dr)
 	if err != nil {
@@ -99,6 +121,7 @@ func (s *dogService) All(dr *AllRequest) (*AllResponse, error) {
 	return toAllResponse(models), nil
 }
 
+// Request for a single dog by name.
 func (s *dogService) GetByName(dr *NameRequest) (*DogResponse, error) {
 	model, err := s.repo.GetByName(dr.Name)
 	if err != nil {

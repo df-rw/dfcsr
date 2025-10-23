@@ -5,21 +5,25 @@ import (
 	"net/http"
 )
 
+// External interface.
 type Controller interface {
 	All(http.ResponseWriter, *http.Request)
 	ByName(http.ResponseWriter, *http.Request)
 }
 
-type controller struct {
-	service Service
-}
-
+// External factory.
 func NewController(s Service) Controller {
 	return &controller{
 		service: s,
 	}
 }
 
+// Internal representation.
+type controller struct {
+	service Service
+}
+
+// Request structures.
 type AllRequest struct {
 	Order     string
 	Direction string
@@ -29,6 +33,7 @@ type NameRequest struct {
 	Name string
 }
 
+// Response structures.
 type DogResponse struct {
 	Name      string
 	Breed     string
@@ -56,7 +61,7 @@ func (c *controller) All(w http.ResponseWriter, r *http.Request) {
 
 	response, err := c.service.All(dr)
 	if err != nil {
-		log.Println("c.service.All()", err)
+		log.Printf("c.service.All(): %v", err)
 
 		return
 	}
@@ -84,7 +89,7 @@ func (c *controller) ByName(w http.ResponseWriter, r *http.Request) {
 
 	response, err := c.service.GetByName(dr)
 	if err != nil {
-		log.Println("c.Service.GetByName(%s): %w", dr.Name, err)
+		log.Printf("c.Service.GetByName(%s): %v", dr.Name, err)
 
 		return
 	}

@@ -8,24 +8,13 @@ import (
 	"strings"
 )
 
-type entity struct {
-	name  string `json:"name"`
-	breed string `json:"breed"`
-}
-
+// External interface.
 type Repository interface {
 	All(*Filters) ([]*Model, error)
 	GetByName(string) (*Model, error)
 }
 
-type dogRepository struct {
-	dogs []entity
-}
-
-var (
-	ErrNoSuchDog = errors.New("no such dog")
-)
-
+// External factory.
 func NewMemoryRepository() Repository {
 	return &dogRepository{
 		dogs: []entity{
@@ -36,6 +25,23 @@ func NewMemoryRepository() Repository {
 	}
 }
 
+// Internal representation.
+type dogRepository struct {
+	dogs []entity
+}
+
+// Internal
+type entity struct {
+	name  string `json:"name"`
+	breed string `json:"breed"`
+}
+
+// Errors.
+var (
+	ErrNoSuchDog = errors.New("no such dog")
+)
+
+// Convert entity to a model.
 func toModel(e entity) *Model {
 	return &Model{
 		Name:  e.name,
@@ -43,6 +49,7 @@ func toModel(e entity) *Model {
 	}
 }
 
+// Convert slice of entities to slice of models.
 func toModels(entities []entity) []*Model {
 	dogs := make([]*Model, len(entities))
 	for i, e := range entities {
@@ -52,9 +59,8 @@ func toModels(entities []entity) []*Model {
 	return dogs
 }
 
-func (d *dogRepository) sortEntities(filters *Filters) []entity {
-	dogs := slices.Clone(d.dogs)
-
+// Sort entities.
+func sortEntities(dogs []entity, filters *Filters) []entity {
 	sortByNameAsc := func(i, j int) bool {
 		return dogs[i].name < dogs[j].name
 	}
@@ -95,7 +101,8 @@ func (d *dogRepository) sortEntities(filters *Filters) []entity {
 }
 
 func (d *dogRepository) All(filters *Filters) ([]*Model, error) {
-	dogs := d.sortEntities(filters)
+	entities := slices.Clone(d.dogs)
+	dogs := sortEntities(entities, filters)
 
 	return toModels(dogs), nil
 }

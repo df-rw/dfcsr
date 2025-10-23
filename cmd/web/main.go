@@ -12,9 +12,7 @@ import (
 func main() {
 	mux := chi.NewRouter()
 
-	dogRepo := dog.NewMemoryRepository()
-	dogService := dog.NewService(dogRepo)
-	dogController := dog.NewController(dogService)
+	dogController := dog.NewController(dog.NewService(dog.NewMemoryRepository()))
 
 	mux.Get("/dog", dogController.ByName)
 	mux.Get("/dog/all", dogController.All)
