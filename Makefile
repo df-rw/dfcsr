@@ -6,8 +6,5 @@ help: # me
 web: # Run web server.
 	air
 
-test: # Run all tests.
-	go test -v ./internal/*
-
 lint: # run linter.
 	golangci-lint run ./cmd/web
