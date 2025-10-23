@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"time"
 )
 
 // External interface.
@@ -34,11 +35,16 @@ type Filters struct {
 type Model struct {
 	Name  string
 	Breed string
+	DOB   time.Time
 }
 
 // Domain model methods.
 func (m *Model) NameBreed() string {
 	return m.Name + m.Breed
+}
+func (m *Model) Age() string {
+	duration := time.Now().Sub(m.DOB)
+	return duration.String()
 }
 
 // Errors.
@@ -81,11 +87,7 @@ func toAllResponse(m []*Model) *AllResponse {
 	dogs := make([]*DogResponse, len(m))
 
 	for i, d := range m {
-		dogs[i] = &DogResponse{
-			Name:      d.Name,
-			Breed:     d.Breed,
-			NameBreed: d.NameBreed(),
-		}
+		dogs[i] = toDogResponse(d)
 	}
 
 	return &AllResponse{
@@ -97,9 +99,9 @@ func toAllResponse(m []*Model) *AllResponse {
 func toDogResponse(m *Model) *DogResponse {
 	if m != nil {
 		return &DogResponse{
-			Name:      m.Name,
-			Breed:     m.Breed,
-			NameBreed: m.NameBreed(),
+			Name:  m.Name,
+			Breed: m.Breed,
+			Age:   m.Age(),
 		}
 	}
 

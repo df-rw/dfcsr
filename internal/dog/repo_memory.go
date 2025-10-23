@@ -5,6 +5,7 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"time"
 )
 
 // External interface.
@@ -15,11 +16,20 @@ type Repository interface {
 
 // External factory.
 func NewMemoryRepository() Repository {
+	times := make([]time.Time, 5)
+	times[0], _ = time.Parse(time.DateOnly, "2023-01-01")
+	times[1], _ = time.Parse(time.DateOnly, "2024-06-30")
+	times[2], _ = time.Parse(time.DateOnly, "2021-04-03")
+	times[3], _ = time.Parse(time.DateOnly, "2010-12-31")
+	times[4], _ = time.Parse(time.DateOnly, "2015-10-01")
+
 	return &dogRepository{
 		dogs: []entity{
-			{"Banjo", "Cocker Spaniel"},
-			{"Noah", "Border Collie"},
-			{"Sebastian", "Border Collie"},
+			{"Banjo", "Cocker Spaniel", times[0]},
+			{"Noah", "Border Collie", times[1]},
+			{"Sebastian", "Border Collie", times[2]},
+			{"Benny", "Poodle", times[3]},
+			{"Growler", "Pit Bull", times[4]},
 		},
 	}
 }
@@ -31,8 +41,9 @@ type dogRepository struct {
 
 // Internal
 type entity struct {
-	name  string `json:"name"`
-	breed string `json:"breed"`
+	name  string    `json:"name"`
+	breed string    `json:"breed"`
+	dob   time.Time `json:"dob"`
 }
 
 // Errors.
@@ -45,6 +56,7 @@ func toModel(e entity) *Model {
 	return &Model{
 		Name:  e.name,
 		Breed: e.breed,
+		DOB:   e.dob,
 	}
 }
 

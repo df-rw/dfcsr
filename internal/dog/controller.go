@@ -40,9 +40,9 @@ type NameRequest struct {
 
 // Response structures.
 type DogResponse struct {
-	Name      string
-	Breed     string
-	NameBreed string
+	Name  string
+	Breed string
+	Age   string
 }
 
 type AllResponse struct {
